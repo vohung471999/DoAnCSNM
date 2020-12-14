@@ -16,10 +16,12 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
 public class SendMail_NonAPI {
+	
 	private static SSLSocketFactory sslsocketfactory;
 	private static SSLSocket clientSocket;
 	private static BufferedReader in;
 	private static PrintWriter out;
+	
 	public SendMail_NonAPI() throws UnknownHostException, IOException{
 		
 			sslsocketfactory = (SSLSocketFactory) SSLSocketFactory.getDefault();
@@ -30,6 +32,7 @@ public class SendMail_NonAPI {
 			System.out.println(in.readLine());
 		
 	}
+	
 	public boolean Authentication(String user, String pass){
 		try {
 			String user_encode = Base64.getMimeEncoder().encodeToString(user.getBytes());
@@ -55,14 +58,14 @@ public class SendMail_NonAPI {
         	return false;
 		}
 	}
-	public void sendEmail(String from,String[] listTo, String[] listCC, String[] listBcc, String content, String filepath, String subject) {
+	
+	public void sendEmail(String from,String[] listTo, String[] listCC, String[] listBcc, String content, String[] listFile, String subject) {
 		try {
-			
 			String data ="";
-			if(filepath.equals("")) {
+			if(listFile == null) {
 				data = SetDataWithoutAttachment(from, listTo, listCC, listBcc, content, subject);
 			}else {
-				data = SetDataWithAttachment(from, listTo, listCC, listBcc, content, filepath, subject);
+				data = SetDataWithAttachment(from, listTo, listCC, listBcc, content, listFile, subject);
 			}
 			out.println("MAIL FROM: <"+from+">");
 			System.out.println(in.readLine());
@@ -94,18 +97,22 @@ public class SendMail_NonAPI {
 			e.printStackTrace();
 		}
 	}
-	public static String SetDataWithAttachment(String from,String[] listTo, String[] listCC, String[] listBcc, String content, String filepath, String subject) throws IOException {
+	
+	public static String SetDataWithAttachment(String from,String[] listTo, String[] listCC, String[] listBcc, String content, String[] listFile, String subject) throws IOException {
 		String m = 
 				Header(from, listTo, listCC, listBcc, subject) +
 				"Content-Type: multipart/mixed; boundary=\"MixedBoundaryString\"\r\n\r\n" + 
 				"--MixedBoundaryString\r\n" + 
-				Content_Part(content)+
-				"--MixedBoundaryString\r\n" + 
-				File_Part(filepath)+
-				"--MixedBoundaryString--\r\n"+
+				Content_Part(content);
+		for (int i = 0; i < listFile.length; i++) {
+			m+=	"--MixedBoundaryString\r\n" + 
+				File_Part(listFile[i]);
+		}
+			m+=	"--MixedBoundaryString--\r\n"+
 				".\r\n";
 		return m;
     }
+	
 	public static String SetDataWithoutAttachment(String from,String[] listTo, String[] listCC, String[] listBcc, String content, String subject){
 		String m = 
 				Header(from, listTo, listCC, listBcc, subject)+
@@ -113,31 +120,44 @@ public class SendMail_NonAPI {
 				".\r\n";
 		return m;
 	}
+	
 	public static String Header(String from,String[] listTo, String[] listCC, String[] listBcc,String subject) {
 		Date d = new Date();
-		String list_to = "To: ";
-		for(int i = 0; i<listTo.length;i++) {
-			list_to+= "<"+listTo[i]+">,\n\t";
-		}
-		list_to=list_to.substring(0, list_to.length()-4);
 		String header =
 				"MIME-Version: 1.0\r\n" +
 				"From: <" + from + ">\r\n"+
 				"Date: "+ d +"\r\n"+ 
-				"Subject: " + subject + "\r\n" +
-				list_to+"\r\n";
+				"Subject: " + subject + "\r\n";
+				
+		if (listTo!=null) {
+			String list_to = "To: ";
+			for (int i = 0; i < listTo.length; i++) {
+				list_to += "<" + listTo[i] + ">,\n\t";
+			}
+			list_to = list_to.substring(0, list_to.length() - 4);
+			header+=list_to+"\r\n";
+		}
+		if (listCC!=null) {
+			String list_cc = "Cc: ";
+			for (int i = 0; i < listCC.length; i++) {
+				list_cc += "<" + listCC[i] + ">,\n\t";
+			}
+			list_cc = list_cc.substring(0, list_cc.length() - 4);
+			header+=list_cc+"\r\n";
+		}
 		return header;
 	}
+	
 	public static String Content_Part(String content) {
 		String content_part =
 				"Content-Type: multipart/alternative; boundary=\"AlternativeBoundaryString\"\r\n\r\n" + 
 				"--AlternativeBoundaryString\r\n" + 
 				"Content-Type: text/plain;charset=\"utf-8\"\r\n" + 
-				"Content-Transfer-Encoding: quoted-printable\r\n\r\n" + 
+				"Content-Transfer-Encoding: base 64\r\n\r\n" + 
 				content+"\r\n\r\n" + 
 				"--AlternativeBoundaryString\r\n" + 
 				"Content-Type: text/html;charset=\"utf-8\"\r\n" + 
-				"Content-Transfer-Encoding: quoted-printable\r\n\r\n" + 
+				"Content-Transfer-Encoding: base 64\r\n\r\n" + 
 				"<div dir=\"ltr\">"+content+"</div>\r\n\r\n" +
 				"--AlternativeBoundaryString--\r\n";
 		return content_part;

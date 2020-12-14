@@ -2,6 +2,7 @@ package SendMailSMTP;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.net.UnknownHostException;
 import java.util.Properties;
 
 import javax.mail.PasswordAuthentication;
@@ -79,11 +80,17 @@ public class Smtp extends JFrame{
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
 				JFileChooser fileChooser = new JFileChooser();
-		        File f = null;
+				fileChooser.setMultiSelectionEnabled(true);
+		        File[] f = null;
+		        String files_path = "";
 		        if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-		            f = fileChooser.getSelectedFile();
+		        	f =fileChooser.getSelectedFiles();
+		        	for(int i = 0; i< f.length;i++) {
+		        		files_path+=f[i].getPath()+",";
+		        	}
+		        	files_path = files_path.substring(0, files_path.length()-1);
 		        }
-		        lb_file.setText(f.getPath());
+		        lb_file.setText(files_path);
 			}
 		});
 
@@ -96,32 +103,32 @@ public class Smtp extends JFrame{
 				String username = tf_username.getText().trim();
 				JTextField p = (JTextField) tf_password;
 	            String pass = p.getText();
-	            String[] listTo = getListEmail(tf_to.getText().trim());
-	            String[] listCc = getListEmail(tf_cc.getText().trim());
-	            String[] listBcc = getListEmail(tf_bcc.getText().trim());
-	            String filePath = lb_file.getText().trim();
+	            String[] listTo = getList(tf_to.getText().trim());
+	            String[] listCc = getList(tf_cc.getText().trim());
+	            String[] listBcc = getList(tf_bcc.getText().trim());
+	            String[] listFile = getList(lb_file.getText().trim());
 	            String mess = tf_message.getText();
 	            String subject = tf_subject.getText();
 	            SendMail_NonAPI sna ;
 	            try {
 	            	sna=new SendMail_NonAPI();
 	            	if(sna.Authentication(username, pass)) {
-		            	sna.sendEmail(username,listTo, listCc, listBcc, mess, filePath, subject);
-		            	lb_file.setText("");
-//		            	tf_to.setText("");
-//		            	tf_bcc.setText("");
-//		            	tf_cc.setText("");
-//		            	tf_subject.setText("");
-//		            	tf_message.setText("");
-		            	JOptionPane.showMessageDialog(null, "Message sent successfull!!");
+	            		if(listTo==null && listCc==null && listBcc==null) {
+	            			JOptionPane.showMessageDialog(null, "Received-mail is empty!!");
+	            		}else if(mess.equals("")){
+	            			JOptionPane.showMessageDialog(null, "Mail's Message is empty!!");
+	            		}else{
+	            			sna.sendEmail(username,listTo, listCc, listBcc, mess, listFile, subject);
+			            	lb_file.setText("");
+			            	JOptionPane.showMessageDialog(null, "Message sent successfull!!");
+	            		}
 		            }
 		            else {
 		            	JOptionPane.showMessageDialog(null, "Username and Password were not accepted");
 		            }
-	            }catch (Exception ex) {
-	            	ex.getStackTrace();
-					// TODO: handle exception
-	            	JOptionPane.showMessageDialog(null, "Can't connect to smtp.gmail");
+	            }catch (Exception e1) {
+	            	e1.getStackTrace();
+	            	JOptionPane.showMessageDialog(null, "Can not connect to smtp gmail");
 				}
 			}
 		});
@@ -228,7 +235,7 @@ public class Smtp extends JFrame{
         pack();
     }
 
-	private String[] getListEmail(String str) {
+	private String[] getList(String str) {
         if (str.equals("")) {
             return null;
         } else if (!str.contains(",")) {
@@ -239,21 +246,27 @@ public class Smtp extends JFrame{
     }
 	public static void main(String[] args) {
 		try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch(Exception e) {
-        	e.getStackTrace();
-        }
+			javax.swing.UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
+			new Smtp().setVisible(true);
+//			java.awt.EventQueue.invokeLater(new Runnable() {
+//	            public void run() {
+//	                new Smtp().setVisible(true);
+//	            }
+//	        });
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InstantiationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (UnsupportedLookAndFeelException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
         
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new Smtp().setVisible(true);
-            }
-        });
 	}
 	
 }

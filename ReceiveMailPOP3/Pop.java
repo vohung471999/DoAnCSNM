@@ -1,26 +1,10 @@
 package ReceiveMailPOP3;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.PrintWriter;
-import java.net.Socket;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
 
-import javax.mail.Folder;
-import javax.mail.Message;
-import javax.mail.Multipart;
-import javax.mail.Part;
-import javax.mail.PasswordAuthentication;
-import javax.mail.Session;
-import javax.mail.Store;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeBodyPart;
 import javax.swing.JOptionPane;
+import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 public class Pop extends javax.swing.JFrame{
@@ -171,34 +155,42 @@ public class Pop extends javax.swing.JFrame{
 		Mail mail = mailList.get(i);
 		taNoidung.setText("mail " + (i + 1));
 		taNoidung.append("\n------------------------------------------------");
-		taNoidung.append("\nFrom: " + mail.from);
-		taNoidung.append("\nTo: " + mail.to);
-		if(!mail.cc.equals("")) {
-			taNoidung.append("\nCc: " + mail.cc);
+		taNoidung.append("\n-From: " + mail.from);
+		if (!mail.to.equals("")) {
+			taNoidung.append("\n-To: " + mail.to);
 		}
-		taNoidung.append("\nDate: " + mail.date);
-		taNoidung.append("\nSubject: " + mail.subject);
-		taNoidung.append("\nContent:\n" + mail.content);
-		taNoidung.append("--------------------------------------------------");
+		if(!mail.cc.equals("")) {
+			taNoidung.append("\n-Cc: " + mail.cc);
+		}
+		if(!mail.bcc.equals("")) {
+			taNoidung.append("\n-Bcc: "+user);
+		}
+		taNoidung.append("\n-Date: " + mail.date);
+		taNoidung.append("\n-Subject: " + mail.subject);
+		taNoidung.append("\n-Content:\n" + mail.content);
+		if(!mail.file.equals("")) {
+			taNoidung.append("\n-Attachment file:\n"+mail.file);
+		}
+		taNoidung.append("\n--------------------------------------------------");
 	}
 
 
 	public static void main(String args[]) {
 		try {
-			for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-				if ("Nimbus".equals(info.getName())) {
-					javax.swing.UIManager.setLookAndFeel(info.getClassName());
-					break;
-				}
-			}
-		} catch (Exception ex) {
-			ex.getStackTrace();
+			javax.swing.UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
+			new Pop().setVisible(true);
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InstantiationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (UnsupportedLookAndFeelException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		java.awt.EventQueue.invokeLater(new Runnable() {
-
-			public void run() {
-				new Pop().setVisible(true);
-			}
-		});
 	}
 }
